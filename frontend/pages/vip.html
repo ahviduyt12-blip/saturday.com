@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIP — Saturday</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .vip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .vip-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .vip-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .vip-card.vip1::before { background: #8bc34a; }
+    .vip-card.vip2::before { background: #00bcd4; }
+    .vip-card.vip3::before { background: #9c27b0; }
+    .vip-card.vip4::before { background: #ff9800; }
+    .vip-card.vip5::before { background: linear-gradient(90deg, #ff4757, #ff9800, #ffd060); }
+    .vip-card:hover { transform: translateY(-4px); }
+    .vip-card.vip1:hover { border-color: #8bc34a; box-shadow: 0 8px 24px rgba(139,195,74,0.2); }
+    .vip-card.vip2:hover { border-color: #00bcd4; box-shadow: 0 8px 24px rgba(0,188,212,0.2); }
+    .vip-card.vip3:hover { border-color: #9c27b0; box-shadow: 0 8px 24px rgba(156,39,176,0.2); }
+    .vip-card.vip4:hover { border-color: #ff9800; box-shadow: 0 8px 24px rgba(255,152,0,0.2); }
+    .vip-card.vip5:hover { border-color: var(--gold); box-shadow: 0 8px 24px rgba(255,184,0,0.3); }
+    .vip-card.owned { opacity: 1; }
+    .vip-card.owned::after {
+      content: '✅ Owned';
+      position: absolute;
+      top: 12px; right: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(0,230,118,0.1);
+      border: 1px solid rgba(0,230,118,0.3);
+      border-radius: 10px;
+      padding: 2px 8px;
+    }
+    .vip-num { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .vip-name { font-size: 20px; font-weight: 800; font-family: 'Syne', sans-serif; }
+    .vip-price-tag { font-size: 24px; font-weight: 800; color: var(--gold); margin: 10px 0 6px; }
+    .vip-perk { font-size: 12px; color: var(--text-secondary); }
+    .vip-tasks { font-size: 14px; font-weight: 600; margin-top: 12px; color: var(--text-primary); }
+    .buy-vip-info {
+      background: rgba(255,184,0,0.06);
+      border: 1px solid rgba(255,184,0,0.2);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .buy-vip-info h3 { font-size: 16px; margin-bottom: 10px; }
+    .buy-vip-info p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .current-vip-banner {
+      background: linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,184,0,0.05));
+      border: 1px solid rgba(255,184,0,0.35);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .current-vip-label { font-size: 13px; color: var(--text-muted); }
+    .current-vip-name { font-size: 20px; font-weight: 800; color: var(--gold); }
+    /* Payment modal specific */
+    .modal-vip-name { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+    .modal-vip-price { font-size: 32px; font-weight: 800; color: var(--gold); text-align: center; margin-bottom: 20px; }
+    .pm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+    .pm-btn {
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .pm-btn.selected { border-color: var(--gold); background: rgba(255,184,0,0.08); }
+  </style>
+</head>
+<body>
+  <script src="../js/layout.js"></script>
+
+  <!-- VIP Purchase Modal -->
+  <div class="modal-overlay" id="vipModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-vip-name" id="modalVipName">VIP1</div>
+      <div class="modal-vip-price" id="modalVipPrice">৳300</div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <div class="pm-btns">
+          <div class="pm-btn" id="pmBkash" onclick="selectPM('bkash')">📱 bKash</div>
+          <div class="pm-btn" id="pmNagad" onclick="selectPM('nagad')">💳 Nagad</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Send payment to: <strong style="color:var(--gold);">01718158600</strong></label>
+        <input type="text" class="form-control" id="senderNumber" placeholder="Your payment number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Transaction ID</label>
+        <input type="text" class="form-control" id="transactionId" placeholder="Enter transaction ID">
+      </div>
+
+      <button class="btn btn-primary btn-full" id="submitVipBtn" onclick="submitVipPurchase()">
+        Submit VIP Request
+      </button>
+      <button class="btn btn-outline btn-full" style="margin-top:10px;" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <main class="page-wrapper">
+    <div class="container">
+      <div class="page-title-bar">
+        <h1 class="page-title">👑 VIP Plans</h1>
+        <p class="page-subtitle">Upgrade to earn more every day</p>
+      </div>
+
+      <!-- Current VIP -->
+      <div class="current-vip-banner fade-in" id="currentVipBanner">
+        <div>
+          <div class="current-vip-label">Current VIP Level</div>
+          <div class="current-vip-name" id="currentVipName">No VIP</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="currentVipTasks">1 task/day</div>
+        </div>
+        <span style="font-size:48px;" id="currentVipIcon">🏷️</span>
+      </div>
+
+      <!-- Info -->
+      <div class="buy-vip-info fade-in">
+        <h3>💡 How VIP works</h3>
+        <p>Send the VIP amount to <strong style="color:var(--gold);">01718158600</strong> via bKash or Nagad, then submit the transaction ID below. Your VIP will be activated within 10–15 minutes by the admin.</p>
+      </div>
+
+      <!-- VIP Cards -->
+      <div class="vip-grid fade-in">
+        <div class="vip-card vip1" onclick="openVipModal(1,300)" id="vip1card">
+          <div class="vip-num">Level 01</div>
+          <div class="vip-name">VIP 1</div>
+          <div class="vip-price-tag">৳300</div>
+          <div class="vip-tasks">📝 2 tasks/day</div>
+          <div class="vip-perk">Starter Package</div>
+        </div>
+        <div class="vip-card vip2" onclick="openVipModal(2,400)" id="vip2card">
+          <div class="vip-num">Level 02</div>
+          <div class="vip-name">VIP 2</div>
+          <div class="vip-price-tag">৳400</div>
+          <div class="vip-tasks">📝 3 tasks/day</div>
+          <div class="vip-perk">Standard Package</div>
+        </div>
+        <div class="vip-card vip3" onclick="openVipModal(3,500)" id="vip3card">
+          <div class="vip-num">Level 03</div>
+          <div class="vip-name">VIP 3</div>
+          <div class="vip-price-tag">৳500</div>
+          <div class="vip-tasks">📝 4 tasks/day</div>
+          <div class="vip-perk">Premium Package</div>
+        </div>
+        <div class="vip-card vip4" onclick="openVipModal(4,700)" id="vip4card">
+          <div class="vip-num">Level 04</div>
+          <div class="vip-name">VIP 4</div>
+          <div class="vip-price-tag">৳700</div>
+          <div class="vip-tasks">📝 5 tasks/day</div>
+          <div class="vip-perk">Elite Package</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/main.js"></script>
+  <script>if(!localStorage.getItem('sat_token')){window.location.replace('../index.html');}</script>
+  <script>
+    let selectedVip = null;
+    let selectedPM = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserAvatar();
+      try {
+        const data = await API.get('/user/vip');
+        if (data.vipLevel) {
+          document.getElementById('currentVipName').textContent = `VIP ${data.vipLevel}`;
+          const tasks = [2,3,4,5][data.vipLevel-1];
+          document.getElementById('currentVipTasks').textContent = `${tasks} tasks/day`;
+          document.getElementById('currentVipIcon').textContent = ['🥈','🥇','💎','👑'][data.vipLevel-1] || '👑';
+          document.getElementById(`vip${data.vipLevel}card`)?.classList.add('owned');
+        }
+      } catch {}
+    });
+
+    function openVipModal(level, price) {
+      selectedVip = { level, price };
+      document.getElementById('modalVipName').textContent = `VIP ${level}`;
+      document.getElementById('modalVipPrice').textContent = `৳${price}`;
+      document.getElementById('vipModal').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('vipModal').classList.remove('active');
+      selectedVip = null; selectedPM = null;
+      document.querySelectorAll('.pm-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('senderNumber').value = '';
+      document.getElementById('transactionId').value = '';
+    }
+    function selectPM(pm) {
+      selectedPM = pm;
+      document.querySelectorAll('.pm-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById(`pm${pm.charAt(0).toUpperCase()+pm.slice(1)}`).classList.add('selected');
+    }
+    async function submitVipPurchase() {
+      if (!selectedVip) return;
+      if (!selectedPM) return Toast.error('Please select a payment method');
+      const sender = document.getElementById('senderNumber').value.trim();
+      const txId = document.getElementById('transactionId').value.trim();
+      if (!sender || !txId) return Toast.error('Please fill all fields');
+      const btn = document.getElementById('submitVipBtn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Submitting...';
+      try {
+        await API.post('/vip/purchase', { level: selectedVip.level, amount: selectedVip.price, paymentMethod: selectedPM, senderNumber: sender, transactionId: txId });
+        Toast.success('VIP request submitted! Admin will activate within 10–15 minutes.');
+        closeModal();
+      } catch (err) {
+        Toast.error(err.message || 'Submission failed');
+      } finally {
+        btn.disabled = false; btn.innerHTML = 'Submit VIP Request';
+      }
+    }
+    document.getElementById('vipModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('vipModal')) closeModal();
+    });
+  </script>
+</body>
+</html>

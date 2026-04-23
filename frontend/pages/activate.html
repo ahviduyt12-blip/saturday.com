@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activate Account — Saturday</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .send-box {
+      background: rgba(255,184,0,0.08);
+      border: 1.5px dashed rgba(255,184,0,0.5);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .send-box-label  { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .send-box-number { font-size: 30px; font-weight: 800; color: var(--gold); font-family: 'Syne', sans-serif; margin: 8px 0 4px; }
+    .send-box-amount { font-size: 15px; color: var(--text-secondary); }
+
+    .step-row { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .step-num {
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #000;
+    }
+    .step-text { font-size: 14px; color: var(--text-secondary); padding-top: 5px; line-height: 1.6; }
+    .step-text strong { color: var(--text-primary); }
+
+    .pm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .pm-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pm-card:hover   { border-color: rgba(255,184,0,0.5); }
+    .pm-card.active  { border-color: var(--gold); background: rgba(255,184,0,0.08); }
+    .pm-emoji { font-size: 30px; }
+    .pm-name  { font-size: 15px; font-weight: 700; margin-top: 6px; }
+
+    .success-card {
+      background: rgba(0,230,118,0.08);
+      border: 1px solid rgba(0,230,118,0.3);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+    }
+    .note-box {
+      background: rgba(0,180,216,0.07);
+      border: 1px solid rgba(0,180,216,0.2);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--blue);
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+    .error-box {
+      background: rgba(255,71,87,0.08);
+      border: 1px solid rgba(255,71,87,0.25);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--red);
+      margin-top: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <script src="../js/layout.js"></script>
+
+  <main class="page-wrapper">
+    <div class="container">
+
+      <div class="page-title-bar">
+        <h1 class="page-title">✅ Account Activation</h1>
+        <p class="page-subtitle">Activate once to unlock all earning features</p>
+      </div>
+
+      <!-- Send-to box -->
+      <div class="send-box fade-in">
+        <div class="send-box-label">Send Payment To</div>
+        <div class="send-box-number">01718158600</div>
+        <div class="send-box-amount">Amount: <strong style="color:var(--gold);">৳100</strong></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">via bKash or Nagad</div>
+      </div>
+
+      <!-- Steps -->
+      <div class="card fade-in" style="margin-bottom:16px;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px;">📋 How to Activate</div>
+        <div class="step-row">
+          <div class="step-num">1</div>
+          <div class="step-text">Send <strong>৳100</strong> to <strong>01718158600</strong> via bKash or Nagad</div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">2</div>
+          <div class="step-text">Enter the number you sent from &amp; your <strong>Transaction ID</strong> below</div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">3</div>
+          <div class="step-text">Click Submit — Admin activates within <strong>10–15 minutes</strong></div>
+        </div>
+      </div>
+
+      <!-- Main form area — swapped by JS based on status -->
+      <div id="formArea" class="fade-in">
+
+        <!-- Payment method -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px;">Select Payment Method</div>
+          <div class="pm-row">
+            <div class="pm-card" id="pmBkash" onclick="selectPM('bkash')">
+              <div class="pm-emoji">📱</div>
+              <div class="pm-name">bKash</div>
+            </div>
+            <div class="pm-card" id="pmNagad" onclick="selectPM('nagad')">
+              <div class="pm-emoji">💳</div>
+              <div class="pm-name">Nagad</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Number You Sent From</label>
+            <div class="input-group">
+              <span class="input-icon">📱</span>
+              <input type="tel" class="form-control" id="senderNum"
+                     placeholder="01XXXXXXXXX" maxlength="11">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Transaction ID</label>
+            <div class="input-group">
+              <span class="input-icon">🔖</span>
+              <input type="text" class="form-control" id="txnId"
+                     placeholder="e.g. 8FG2K9XY">
+            </div>
+          </div>
+
+          <div class="error-box" id="errorBox">⚠️ <span id="errorMsg"></span></div>
+
+          <button class="btn btn-primary btn-full" id="submitBtn" onclick="submitActivation()">
+            Submit Activation Request
+          </button>
+
+          <div class="note-box">
+            ℹ️ After submitting, your account will be activated within <strong>10–15 minutes</strong>.
+            You will be able to earn money once your account is active.
+          </div>
+        </div>
+
+      </div><!-- /formArea -->
+
+    </div>
+  </main>
+
+  <script src="../js/main.js"></script>
+  <script>
+    let selectedPM = null;
+
+    // ── Auth guard ──────────────────────────────────────────
+    if (!Auth.isLoggedIn()) {
+      window.location.replace('../index.html');
+    }
+
+    // ── On load — check current status ─────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check cached status first
+      const user = Auth.getUser();
+
+      // Try to get live status from backend
+      try {
+        const data = await API.get('/user/status');
+
+        if (data.isActive) {
+          showAlreadyActive();
+          return;
+        }
+        if (data.activationPending) {
+          showPending();
+          return;
+        }
+      } catch (err) {
+        // Backend not running — fall back to cached data silently
+        console.warn('Status check failed (offline):', err.message);
+      }
+
+      // Show form (default)
+    });
+
+    // ── Payment method select ───────────────────────────────
+    function selectPM(pm) {
+      selectedPM = pm;
+      document.getElementById('pmBkash').classList.toggle('active', pm === 'bkash');
+      document.getElementById('pmNagad').classList.toggle('active', pm === 'nagad');
+    }
+
+    // ── Show error ──────────────────────────────────────────
+    function showError(msg) {
+      const box = document.getElementById('errorBox');
+      document.getElementById('errorMsg').textContent = msg;
+      box.style.display = 'block';
+    }
+    function hideError() {
+      document.getElementById('errorBox').style.display = 'none';
+    }
+
+    // ── Submit ──────────────────────────────────────────────
+    async function submitActivation() {
+      hideError();
+
+      if (!selectedPM)                     return showError('Please select bKash or Nagad.');
+      const sender = document.getElementById('senderNum').value.trim();
+      const txn    = document.getElementById('txnId').value.trim();
+
+      if (!sender)                         return showError('Please enter the number you sent from.');
+      if (!/^01[3-9]\d{8}$/.test(sender)) return showError('Enter a valid 11-digit Bangladeshi number.');
+      if (!txn)                            return showError('Please enter the Transaction ID.');
+      if (txn.length < 4)                  return showError('Transaction ID looks too short.');
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+      try {
+        await API.post('/activation/submit', {
+          paymentMethod: selectedPM,
+          senderNumber:  sender,
+          transactionId: txn,
+        });
+        showPending();
+        Toast.success('Request submitted! Admin will activate your account soon.');
+      } catch (err) {
+        // If backend is not running, save locally and show pending UI anyway
+        if (err.message.includes('fetch') || err.message.includes('Failed') || err.message.includes('NetworkError')) {
+          // Save pending state locally
+          const u = Auth.getUser();
+          u.activationPending = true;
+          Storage.set('sat_user', u);
+          showPending();
+          Toast.info('Saved locally. Will sync when server is online.');
+        } else {
+          showError(err.message || 'Submission failed. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = 'Submit Activation Request';
+        }
+      }
+    }
+
+    // ── UI states ───────────────────────────────────────────
+    function showPending() {
+      document.getElementById('formArea').innerHTML = `
+        <div class="success-card">
+          <div style="font-size:52px;margin-bottom:12px;">⏳</div>
+          <h3 style="font-size:18px;margin-bottom:8px;">Request Submitted!</h3>
+          <p style="font-size:14px;color:var(--text-secondary);">
+            Your activation request has been sent to the admin.<br>
+            Your account will be activated within <strong style="color:var(--gold);">10–15 minutes</strong>.
+          </p>
+          <button class="btn btn-outline" style="margin-top:20px;"
+            onclick="window.location.href='../home.html'">← Back to Home</button>
+        </div>`;
+    }
+
+    function showAlreadyActive() {
+      document.getElementById('formArea').innerHTML = `
+        <div class="success-card">
+          <div style="font-size:52px;margin-bottom:12px;">🎉</div>
+          <h3 style="font-size:18px;margin-bottom:8px;">Account Already Active!</h3>
+          <p style="font-size:14px;color:var(--text-secondary);">
+            Your account is active. You can now complete daily tasks and earn money!
+          </p>
+          <button class="btn btn-primary" style="margin-top:20px;"
+            onclick="window.location.href='tax.html'">📝 Start Earning</button>
+        </div>`;
+    }
+  </script>
+</body>
+</html>

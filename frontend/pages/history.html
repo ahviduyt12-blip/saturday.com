@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History — Saturday</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .filter-tabs { display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px; }
+    .filter-tab { padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);white-space:nowrap;transition:all 0.2s; }
+    .filter-tab.active { background:rgba(255,184,0,0.1);border-color:var(--gold);color:var(--gold); }
+    .history-total { background:linear-gradient(135deg,rgba(255,184,0,0.12),rgba(255,184,0,0.04));border:1px solid rgba(255,184,0,0.25);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:20px; }
+    .history-total-label { font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px; }
+    .history-total-val { font-size:32px;font-weight:800;color:var(--gold);font-family:'Syne',sans-serif;margin-top:6px; }
+    .history-type-icon { font-size:22px;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .type-withdraw { background:rgba(255,71,87,0.12); }
+    .type-task { background:rgba(0,230,118,0.12); }
+    .type-referral { background:rgba(0,180,216,0.12); }
+    .history-info { flex:1; }
+    .history-type { font-size:14px;font-weight:600; }
+    .history-date { font-size:12px;color:var(--text-muted);margin-top:2px; }
+    .history-status { font-size:11px;margin-top:4px; }
+  </style>
+</head>
+<body>
+  <script src="../js/layout.js"></script>
+  <main class="page-wrapper">
+    <div class="container">
+      <div class="page-title-bar"><h1 class="page-title">📋 History</h1><p class="page-subtitle">Your transaction & earning history</p></div>
+      <div class="history-total fade-in"><div class="history-total-label">Total Withdrawn</div><div class="history-total-val" id="totalWithdrawn">৳0.00</div></div>
+      <div class="filter-tabs fade-in">
+        <div class="filter-tab active" onclick="filterHistory('all',this)">All</div>
+        <div class="filter-tab" onclick="filterHistory('withdraw',this)">Withdrawals</div>
+        <div class="filter-tab" onclick="filterHistory('task',this)">Tasks</div>
+        <div class="filter-tab" onclick="filterHistory('referral',this)">Referral</div>
+      </div>
+      <div class="card fade-in" id="historyList">
+        <div style="text-align:center;padding:30px;"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+  <script src="../js/main.js"></script>
+  <script>if(!localStorage.getItem('sat_token')){window.location.replace('../index.html');}</script>
+  <script>
+    let allHistory = [];
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserAvatar();
+      try {
+        const data = await API.get('/user/history');
+        allHistory = data.history || [];
+        const totalW = allHistory.filter(h=>h.type==='withdraw').reduce((s,h)=>s+h.amount,0);
+        document.getElementById('totalWithdrawn').textContent = formatAmount(totalW);
+        renderHistory(allHistory);
+      } catch (err) { document.getElementById('historyList').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">${err.message}</div></div>`; }
+    });
+    function filterHistory(type, el) {
+      document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+      el.classList.add('active');
+      renderHistory(type === 'all' ? allHistory : allHistory.filter(h=>h.type===type));
+    }
+    function renderHistory(items) {
+      if (!items.length) { document.getElementById('historyList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No records found</div></div>'; return; }
+      const icons = { withdraw:'💸', task:'✅', referral:'🔗', vip:'👑', activation:'🔓' };
+      const typeClass = { withdraw:'type-withdraw', task:'type-task', referral:'type-referral' };
+      document.getElementById('historyList').innerHTML = items.map(h => `
+        <div class="history-item">
+          <div class="history-type-icon ${typeClass[h.type]||'type-task'}">${icons[h.type]||'💰'}</div>
+          <div class="history-info" style="margin-left:14px;">
+            <div class="history-type">${h.description||h.type}</div>
+            <div class="history-date">${formatDate(h.createdAt)}</div>
+            ${h.status?`<div class="history-status"><span class="badge badge-${h.status==='completed'?'green':h.status==='pending'?'gold':'red'}">${h.status}</span></div>`:''}
+          </div>
+          <div class="history-amount" style="color:${h.type==='withdraw'?'var(--red)':'var(--green)'};">${h.type==='withdraw'?'-':'+'} ${formatAmount(h.amount)}</div>
+        </div>`).join('');
+    }
+  </script>
+</body>
+</html>

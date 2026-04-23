@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home — Saturday</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .quick-action {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: block;
+    }
+    .quick-action:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .qa-icon  { font-size: 26px; margin-bottom: 6px; }
+    .qa-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
+
+    .earn-card {
+      background: linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,184,0,0.05));
+      border: 1px solid rgba(255,184,0,0.3);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .earn-card::before {
+      content: '💰';
+      position: absolute;
+      font-size: 100px;
+      right: -20px; bottom: -20px;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+    .earn-label  { font-size: 12px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .earn-amount { font-size: 40px; font-weight: 800; color: var(--gold); font-family: 'Syne', sans-serif; margin: 8px 0; }
+    .earn-sub    { font-size: 12px; color: var(--text-secondary); }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 12px; font-weight: 600; margin-top: 10px;
+      cursor: pointer; border: 1px solid;
+    }
+    .status-pill.active   { background: rgba(0,230,118,0.12); color: var(--green); border-color: rgba(0,230,118,0.3); }
+    .status-pill.pending  { background: rgba(255,184,0,0.10); color: var(--gold);  border-color: rgba(255,184,0,0.3); }
+    .status-pill.inactive { background: rgba(255,71,87,0.12);  color: var(--red);   border-color: rgba(255,71,87,0.3); }
+
+    .announcement-card {
+      background: linear-gradient(135deg, rgba(0,230,118,0.08), rgba(0,180,216,0.06));
+      border: 1px solid rgba(0,230,118,0.2);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      display: flex; gap: 12px;
+    }
+    .ann-icon  { font-size: 22px; flex-shrink: 0; }
+    .ann-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .ann-text  { font-size: 12px; color: var(--text-secondary); }
+
+    /* offline warning bar */
+    .offline-bar {
+      background: rgba(255,71,87,0.12);
+      border: 1px solid rgba(255,71,87,0.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--red);
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .offline-bar.show { display: flex; }
+  </style>
+</head>
+<body>
+
+  <!-- layout.js injects header + sidebar + bottom nav automatically -->
+  <script src="js/layout.js"></script>
+
+  <main class="page-wrapper">
+    <div class="container">
+
+      <!-- Offline / backend-down warning (hidden by default) -->
+      <div class="offline-bar" id="offlineBar">
+        ⚠️ Server connection failed — showing saved data. Start the backend server for live data.
+      </div>
+
+      <!-- Welcome -->
+      <div class="welcome-banner fade-in">
+        <div class="welcome-greeting" id="welcomeGreeting">Welcome to Saturday! 🌟</div>
+        <p class="welcome-text">Your trusted halal earn money platform. Complete tasks &amp; earn daily!</p>
+      </div>
+
+      <!-- Balance card -->
+      <div class="earn-card fade-in">
+        <div class="earn-label">Total Balance</div>
+        <div class="earn-amount" id="balanceDisplay">৳0.00</div>
+        <div class="earn-sub">Available to withdraw (min ৳300)</div>
+        <div id="accountStatusBadge">
+          <span class="status-pill inactive" onclick="window.location.href='pages/activate.html'">
+            🔴 Account Not Active — Tap to Activate
+          </span>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="stats-grid fade-in">
+        <div class="stat-card gold">
+          <div class="stat-label">Earned Today</div>
+          <div class="stat-value" id="todayEarned">৳0.00</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Total Earned</div>
+          <div class="stat-value" id="totalEarned">৳0.00</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Team Size</div>
+          <div class="stat-value" id="teamCount">0</div>
+        </div>
+        <div class="stat-card" style="background:var(--bg-card);">
+          <div class="stat-label">VIP Level</div>
+          <div class="stat-value" id="vipLevel" style="color:var(--gold);">None</div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="section-header fade-in">
+        <div class="section-title">Quick Actions</div>
+      </div>
+      <div class="quick-actions fade-in">
+        <a class="quick-action" href="pages/tax.html">
+          <div class="qa-icon">📝</div>
+          <div class="qa-label">Do Task</div>
+        </a>
+        <a class="quick-action" href="pages/withdraw.html">
+          <div class="qa-icon">💸</div>
+          <div class="qa-label">Withdraw</div>
+        </a>
+        <a class="quick-action" href="pages/team.html">
+          <div class="qa-icon">👥</div>
+          <div class="qa-label">Refer</div>
+        </a>
+        <a class="quick-action" href="pages/vip.html">
+          <div class="qa-icon">👑</div>
+          <div class="qa-label">Get VIP</div>
+        </a>
+      </div>
+
+      <!-- Announcements -->
+      <div class="section-header fade-in">
+        <div class="section-title">📢 Announcements</div>
+      </div>
+      <div id="announcements" class="fade-in">
+        <div class="announcement-card">
+          <div class="ann-icon">🎉</div>
+          <div>
+            <div class="ann-title">Welcome to Saturday!</div>
+            <div class="ann-text">Activate your account to start earning money in a halal way. Complete daily tasks and earn rewards.</div>
+          </div>
+        </div>
+        <div class="announcement-card">
+          <div class="ann-icon">👑</div>
+          <div>
+            <div class="ann-title">Get VIP for More Earnings</div>
+            <div class="ann-text">Upgrade to VIP to unlock more daily tasks and higher income potential!</div>
+          </div>
+        </div>
+        <div class="announcement-card">
+          <div class="ann-icon">🔗</div>
+          <div>
+            <div class="ann-title">Refer &amp; Earn Commission</div>
+            <div class="ann-text">Share your referral link and earn commission when your friends activate their accounts.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /container -->
+  </main>
+
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+
+      // ── 1. Auth guard — redirect to login if not logged in ──
+      if (!Auth.isLoggedIn()) {
+        window.location.replace('index.html');
+        return;
+      }
+
+      // ── 2. Show user name in greeting immediately from cache ──
+      const cached = Auth.getUser();
+      if (cached && cached.name) {
+        document.getElementById('welcomeGreeting').textContent =
+          `Welcome, ${cached.name}! 🌟`;
+        // Show cached balance right away
+        if (cached.balance !== undefined) {
+          document.getElementById('balanceDisplay').textContent =
+            formatAmount(cached.balance);
+        }
+      }
+
+      // ── 3. Try to fetch live dashboard from backend ──
+      try {
+        const data = await API.get('/user/dashboard');
+
+        // Update UI with live data
+        document.getElementById('balanceDisplay').textContent = formatAmount(data.balance);
+        document.getElementById('todayEarned').textContent    = formatAmount(data.todayEarned);
+        document.getElementById('totalEarned').textContent    = formatAmount(data.totalEarned);
+        document.getElementById('teamCount').textContent      = data.teamCount  || 0;
+        document.getElementById('vipLevel').textContent       = data.vipLevel   ? `VIP${data.vipLevel}` : 'None';
+
+        // Account status badge
+        const badge = document.getElementById('accountStatusBadge');
+        if (data.isActive) {
+          badge.innerHTML = '<span class="status-pill active">🟢 Account Active</span>';
+        } else if (data.activationPending) {
+          badge.innerHTML = '<span class="status-pill pending">⏳ Activation Pending (10–15 min)</span>';
+        } else {
+          badge.innerHTML = `<span class="status-pill inactive"
+            onclick="window.location.href='pages/activate.html'">
+            🔴 Account Not Active — Tap to Activate
+          </span>`;
+        }
+
+        // Update header balance pill (injected by layout.js)
+        const headerBal = document.querySelector('.sat-balance-val');
+        if (headerBal) headerBal.textContent = formatAmount(data.balance);
+
+        // Cache updated balance for next offline load
+        const u = Auth.getUser();
+        u.balance = data.balance;
+        Storage.set('sat_user', u);
+
+      } catch (err) {
+        // ── 4. Backend unreachable — show warning, keep cached values ──
+        document.getElementById('offlineBar').classList.add('show');
+        console.warn('Dashboard fetch failed:', err.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdraw — Saturday</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .balance-display {
+      background: linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,184,0,0.05));
+      border: 1px solid rgba(255,184,0,0.3);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .bal-label { font-size: 12px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+    .bal-amount { font-size: 44px; font-weight: 800; color: var(--gold); font-family: 'Syne', sans-serif; margin: 8px 0 4px; }
+    .bal-note { font-size: 12px; color: var(--text-secondary); }
+    .limit-info {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .limit-pill {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .limit-pill-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .limit-pill-val { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 4px; }
+    .amount-presets {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .amount-preset {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .amount-preset:hover, .amount-preset.active {
+      border-color: var(--gold);
+      background: rgba(255,184,0,0.08);
+      color: var(--gold);
+    }
+    .processing-note {
+      background: rgba(0,180,216,0.06);
+      border: 1px solid rgba(0,180,216,0.2);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--blue);
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <script src="../js/layout.js"></script>
+
+  <main class="page-wrapper">
+    <div class="container">
+      <div class="page-title-bar">
+        <h1 class="page-title">💸 Withdraw</h1>
+        <p class="page-subtitle">Cash out your earned balance</p>
+      </div>
+
+      <!-- Balance Card -->
+      <div class="balance-display fade-in">
+        <div class="bal-label">Available Balance</div>
+        <div class="bal-amount" id="availBalance">৳0.00</div>
+        <div class="bal-note" id="balNote">Loading...</div>
+      </div>
+
+      <!-- Limits -->
+      <div class="limit-info fade-in">
+        <div class="limit-pill">
+          <div class="limit-pill-label">Minimum</div>
+          <div class="limit-pill-val">৳300</div>
+        </div>
+        <div class="limit-pill">
+          <div class="limit-pill-label">Maximum</div>
+          <div class="limit-pill-val">৳1,500</div>
+        </div>
+        <div class="limit-pill">
+          <div class="limit-pill-label">Processing</div>
+          <div class="limit-pill-val">5-7 Days</div>
+        </div>
+      </div>
+
+      <!-- Withdraw Form -->
+      <div class="card fade-in">
+        <div class="section-header" style="margin-bottom:18px;">
+          <div class="section-title">Payment Method</div>
+        </div>
+
+        <div class="payment-methods">
+          <div class="payment-card" id="pmBkash" onclick="selectMethod('bkash')">
+            <div class="payment-emoji">📱</div>
+            <div class="payment-name">bKash</div>
+          </div>
+          <div class="payment-card" id="pmNagad" onclick="selectMethod('nagad')">
+            <div class="payment-emoji">💳</div>
+            <div class="payment-name">Nagad</div>
+          </div>
+        </div>
+
+        <div id="withdrawForm" style="display:none;">
+          <div class="divider">Fill withdrawal details</div>
+
+          <div class="form-group">
+            <label class="form-label">Account Number <span id="pmLabel" style="color:var(--gold);">(bKash)</span></label>
+            <div class="input-group">
+              <span class="input-icon">📱</span>
+              <input type="tel" class="form-control" id="withdrawNumber" placeholder="01XXXXXXXXX" maxlength="11">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Amount (৳300 – ৳1500)</label>
+            <div class="amount-presets">
+              <div class="amount-preset" onclick="setAmount(300)">৳300</div>
+              <div class="amount-preset" onclick="setAmount(500)">৳500</div>
+              <div class="amount-preset" onclick="setAmount(1000)">৳1000</div>
+              <div class="amount-preset" onclick="setAmount(1500)">৳1500</div>
+            </div>
+            <div class="input-group">
+              <span class="input-icon">💰</span>
+              <input type="number" class="form-control" id="withdrawAmount" placeholder="Enter amount" min="300" max="1500">
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-full" onclick="submitWithdraw()" id="withdrawBtn">
+            💸 Request Withdrawal
+          </button>
+
+          <div class="processing-note">
+            ℹ️ Your withdrawal will be processed within <strong>5–7 working days</strong>. Make sure the account number is correct. The admin will manually send your money.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/main.js"></script>
+  <script>if(!localStorage.getItem('sat_token')){window.location.replace('../index.html');}</script>
+  <script>
+    let selectedMethod = null;
+    let userBalance = 0;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserAvatar();
+      try {
+        const data = await API.get('/user/balance');
+        userBalance = data.balance || 0;
+        document.getElementById('availBalance').textContent = formatAmount(userBalance);
+        if (userBalance < 300) {
+          document.getElementById('balNote').textContent = `You need ৳${(300 - userBalance).toFixed(2)} more to withdraw`;
+          document.getElementById('balNote').style.color = 'var(--red)';
+        } else {
+          document.getElementById('balNote').textContent = 'You can withdraw now!';
+          document.getElementById('balNote').style.color = 'var(--green)';
+        }
+      } catch {}
+    });
+
+    function selectMethod(method) {
+      selectedMethod = method;
+      document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById(`pm${method.charAt(0).toUpperCase()+method.slice(1)}`).classList.add('selected');
+      document.getElementById('withdrawForm').style.display = 'block';
+      document.getElementById('pmLabel').textContent = `(${method === 'bkash' ? 'bKash' : 'Nagad'})`;
+    }
+
+    function setAmount(val) {
+      document.getElementById('withdrawAmount').value = val;
+      document.querySelectorAll('.amount-preset').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    async function submitWithdraw() {
+      if (!selectedMethod) return Toast.error('Please select payment method');
+      const number = document.getElementById('withdrawNumber').value.trim();
+      const amount = parseFloat(document.getElementById('withdrawAmount').value);
+
+      if (!number) return Toast.error('Please enter your account number');
+      if (!/^01[3-9]\d{8}$/.test(number)) return Toast.error('Enter a valid Bangladeshi number');
+      if (!amount || amount < 300) return Toast.error('Minimum withdrawal is ৳300');
+      if (amount > 1500) return Toast.error('Maximum withdrawal is ৳1500');
+      if (amount > userBalance) return Toast.error('Insufficient balance');
+
+      const btn = document.getElementById('withdrawBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+      try {
+        await API.post('/withdraw/request', { method: selectedMethod, number, amount });
+        Toast.success('Withdrawal request submitted! You\'ll receive money within 5-7 working days.');
+        setTimeout(() => window.location.href = 'history.html', 2000);
+      } catch (err) {
+        Toast.error(err.message || 'Withdrawal failed');
+        btn.disabled = false;
+        btn.innerHTML = '💸 Request Withdrawal';
+      }
+    }
+  </script>
+</body>
+</html>

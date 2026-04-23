@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Tasks — Saturday</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .task-empty {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .task-empty-icon { font-size: 60px; margin-bottom: 14px; }
+    .task-empty-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .task-empty-text { font-size: 14px; color: var(--text-secondary); }
+    .task-limit-info {
+      background: rgba(0,180,216,0.08);
+      border: 1px solid rgba(0,180,216,0.2);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--blue);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .task-full-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .task-top {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-body { padding: 20px; }
+    .task-actions { padding: 0 20px 20px; }
+    .reward-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,184,0,0.12);
+      border: 1px solid rgba(255,184,0,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .visit-btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 13px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .visit-btn:hover { opacity: 0.9; }
+    .submit-btn-task {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #000;
+      border: none;
+      padding: 13px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .submit-btn-task:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .submit-btn-task:not(:disabled):hover { transform: translateY(-2px); box-shadow: var(--shadow-gold); }
+    .watch-warning {
+      background: rgba(255,71,87,0.08);
+      border: 1px solid rgba(255,71,87,0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--red);
+      margin-bottom: 10px;
+      display: none;
+    }
+    .completed-overlay {
+      background: rgba(0,230,118,0.08);
+      border: 1px solid rgba(0,230,118,0.3);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+    }
+    .completed-icon { font-size: 48px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <script src="../js/layout.js"></script>
+
+  <main class="page-wrapper">
+    <div class="container">
+      <div class="page-title-bar">
+        <h1 class="page-title">📝 Daily Tax</h1>
+        <p class="page-subtitle">Complete tasks to earn money every day</p>
+      </div>
+
+      <div id="taskLimitInfo" class="task-limit-info" style="display:none;">
+        <span>ℹ️</span>
+        <span id="limitText">Loading task info...</span>
+      </div>
+
+      <div id="taskContent">
+        <!-- Loading state -->
+        <div style="text-align:center;padding:40px;">
+          <div class="spinner"></div>
+          <p style="margin-top:14px;color:var(--text-muted);font-size:14px;">Loading tasks...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/main.js"></script>
+  <script>if(!localStorage.getItem('sat_token')){window.location.replace('../index.html');}</script>
+  <script>
+    let currentTask = null;
+    let visitedTask = false;
+    let watchTimer = null;
+    let watchRequired = 0;
+    let watchElapsed = 0;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserAvatar();
+      await loadTasks();
+    });
+
+    async function loadTasks() {
+      const content = document.getElementById('taskContent');
+      try {
+        const data = await API.get('/tax/today');
+        const limitInfo = document.getElementById('taskLimitInfo');
+        const limitText = document.getElementById('limitText');
+
+        if (data.accountNotActive) {
+          content.innerHTML = `
+            <div class="task-empty">
+              <div class="task-empty-icon">🔒</div>
+              <div class="task-empty-title">Account Not Active</div>
+              <div class="task-empty-text">Please activate your account first to start earning.</div>
+              <button class="btn btn-primary" style="margin-top:20px;" onclick="window.location.href='activate.html'">Activate Account</button>
+            </div>`;
+          return;
+        }
+
+        // Show limit info
+        limitInfo.style.display = 'flex';
+        limitText.textContent = `You can do ${data.maxTasks} task(s) per day. Completed: ${data.completedToday}/${data.maxTasks}`;
+
+        if (data.allCompleted) {
+          content.innerHTML = `
+            <div class="completed-overlay">
+              <div class="completed-icon">✅</div>
+              <h3 style="font-size:18px;margin-bottom:8px;">All Tasks Done!</h3>
+              <p style="font-size:14px;color:var(--text-secondary);">You have completed all your tasks for today. Come back tomorrow!</p>
+              <p style="font-size:13px;color:var(--gold);margin-top:12px;font-weight:600;">Earned today: ${formatAmount(data.earnedToday)}</p>
+            </div>`;
+          return;
+        }
+
+        if (!data.task) {
+          content.innerHTML = `
+            <div class="task-empty">
+              <div class="task-empty-icon">📭</div>
+              <div class="task-empty-title">No Tasks Available</div>
+              <div class="task-empty-text">The admin hasn't added any tasks yet. Check back soon!</div>
+            </div>`;
+          return;
+        }
+
+        currentTask = data.task;
+        watchRequired = data.task.watchSeconds || 60;
+        renderTask(data.task);
+
+      } catch (err) {
+        content.innerHTML = `
+          <div class="task-empty">
+            <div class="task-empty-icon">⚠️</div>
+            <div class="task-empty-title">Could not load tasks</div>
+            <div class="task-empty-text">${err.message}</div>
+          </div>`;
+      }
+    }
+
+    function renderTask(task) {
+      const typeLabel = task.type === 'youtube' ? '▶️ YouTube Video' :
+                        task.type === 'tiktok' ? '🎵 TikTok Video' :
+                        task.type === 'telegram' ? '✈️ Telegram Channel' : '🌐 Website Visit';
+
+      document.getElementById('taskContent').innerHTML = `
+        <div class="task-full-card">
+          <div class="task-top">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${typeLabel}</div>
+                <div class="task-title" style="font-size:17px;">${task.title}</div>
+              </div>
+              <div class="reward-pill">💰 ${formatAmount(task.reward)}</div>
+            </div>
+            ${task.description ? `<p style="font-size:13px;color:var(--text-secondary);margin-top:10px;">${task.description}</p>` : ''}
+          </div>
+
+          <div class="task-body">
+            <div id="watchWarning" class="watch-warning">
+              ⚠️ You must watch/visit the full content before submitting!
+            </div>
+            <div id="timerArea" style="display:none;margin-bottom:12px;text-align:center;">
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Watch time remaining:</p>
+              <div class="countdown" id="countdownDisplay">⏱ 00:00</div>
+            </div>
+          </div>
+
+          <div class="task-actions">
+            <button class="visit-btn" id="visitBtn" onclick="visitTask()">
+              🔗 Visit & Watch
+            </button>
+            <button class="submit-btn-task" id="submitBtn" onclick="submitTask()" disabled>
+              ✅ Submit Task
+            </button>
+          </div>
+        </div>`;
+    }
+
+    function visitTask() {
+      if (!currentTask) return;
+      // Open link
+      window.open(currentTask.url, '_blank');
+      visitedTask = true;
+
+      // Start countdown
+      const timerArea = document.getElementById('timerArea');
+      const submitBtn = document.getElementById('submitBtn');
+      const countdownEl = document.getElementById('countdownDisplay');
+      timerArea.style.display = 'block';
+
+      watchElapsed = 0;
+      watchTimer = setInterval(() => {
+        watchElapsed++;
+        const remaining = watchRequired - watchElapsed;
+        if (remaining <= 0) {
+          clearInterval(watchTimer);
+          countdownEl.innerHTML = '✅ Done! You can submit now.';
+          countdownEl.style.background = 'rgba(0,230,118,0.1)';
+          countdownEl.style.color = 'var(--green)';
+          submitBtn.disabled = false;
+        } else {
+          countdownEl.innerHTML = `⏱ ${formatTime(remaining)}`;
+        }
+      }, 1000);
+
+      document.getElementById('visitBtn').innerHTML = '🔄 Re-visit if needed';
+      document.getElementById('visitBtn').style.opacity = '0.7';
+    }
+
+    async function submitTask() {
+      if (!visitedTask) {
+        document.getElementById('watchWarning').style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Submitting...';
+      try {
+        const data = await API.post('/tax/submit', { taskId: currentTask._id });
+        Toast.success(`+${formatAmount(data.earned)} added to your account!`);
+        setTimeout(() => loadTasks(), 1500);
+      } catch (err) {
+        Toast.error(err.message || 'Submission failed');
+        btn.disabled = false;
+        btn.innerHTML = '✅ Submit Task';
+      }
+    }
+  </script>
+</body>
+</html>

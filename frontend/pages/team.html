@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team — Saturday</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .team-stats { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px; }
+    .team-stat { background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;text-align:center; }
+    .ts-val { font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:var(--gold); }
+    .ts-label { font-size:11px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px; }
+    .member-card { display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border); }
+    .member-card:last-child { border-bottom:none; }
+    .member-avatar { width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#000; }
+    .member-name { font-size:14px;font-weight:600; }
+    .member-date { font-size:12px;color:var(--text-muted);margin-top:2px; }
+    .member-status { margin-left:auto; }
+  </style>
+</head>
+<body>
+  <script src="../js/layout.js"></script>
+  <main class="page-wrapper">
+    <div class="container">
+      <div class="page-title-bar"><h1 class="page-title">👥 My Team</h1><p class="page-subtitle">Your referrals & commission earnings</p></div>
+      <!-- Referral Link -->
+      <div class="referral-box fade-in">
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">🔗 Your Referral Link</div>
+        <div class="referral-link-text" id="refLink">Loading...</div>
+        <button class="copy-btn" onclick="copyRefLink()">📋 Copy Referral Link</button>
+      </div>
+      <!-- Stats -->
+      <div class="team-stats fade-in">
+        <div class="team-stat"><div class="ts-val" id="totalRefs">0</div><div class="ts-label">Total Refs</div></div>
+        <div class="team-stat"><div class="ts-val" id="activeRefs">0</div><div class="ts-label">Active</div></div>
+        <div class="team-stat"><div class="ts-val" id="refEarned">৳0</div><div class="ts-label">Commission</div></div>
+      </div>
+      <!-- Members -->
+      <div class="section-header fade-in"><div class="section-title">Team Members</div></div>
+      <div class="card fade-in" id="membersList">
+        <div style="text-align:center;padding:30px;"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+  <script src="../js/main.js"></script>
+  <script>if(!localStorage.getItem('sat_token')){window.location.replace('../index.html');}</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserAvatar();
+      const user = Auth.getUser();
+      if (user) {
+        const refLink = `${window.location.origin}/?ref=${user.referralCode}`;
+        document.getElementById('refLink').textContent = refLink;
+      }
+      try {
+        const data = await API.get('/user/team');
+        document.getElementById('totalRefs').textContent = data.total || 0;
+        document.getElementById('activeRefs').textContent = data.active || 0;
+        document.getElementById('refEarned').textContent = formatAmount(data.commission);
+        if (data.members && data.members.length) {
+          document.getElementById('membersList').innerHTML = data.members.map(m => `
+            <div class="member-card">
+              <div class="member-avatar">${m.name.charAt(0).toUpperCase()}</div>
+              <div>
+                <div class="member-name">${m.name}</div>
+                <div class="member-date">Joined ${formatDate(m.joinedAt)}</div>
+              </div>
+              <div class="member-status"><span class="badge badge-${m.isActive?'green':'red'}">${m.isActive?'Active':'Inactive'}</span></div>
+            </div>`).join('');
+        } else {
+          document.getElementById('membersList').innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No team members yet. Share your referral link!</div></div>';
+        }
+      } catch (err) {
+        document.getElementById('membersList').innerHTML = `<div class="empty-state"><div class="empty-text">${err.message}</div></div>`;
+      }
+    });
+    function copyRefLink() {
+      const user = Auth.getUser();
+      if (user) copyToClipboard(`${window.location.origin}/?ref=${user.referralCode}`);
+    }
+  </script>
+</body>
+</html>

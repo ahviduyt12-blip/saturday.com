@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Saturday</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#08080f;--bg2:#0f0f1a;--card:#141420;--border:rgba(255,255,255,0.08);
+      --gold:#ffb800;--gold2:#ffd060;--green:#00e676;--red:#ff4757;--blue:#00b4d8;
+      --text:#f0f0f8;--muted:#8888aa;--dim:#555570;--sidebar:240px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+    a{text-decoration:none;color:inherit;}
+    ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
+
+    .sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+    .sidebar-brand{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),#cc9200);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px rgba(255,184,0,0.35);}
+    .brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .brand-sub{font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;}
+    .nav-section{padding:16px 0;flex:1;}
+    .nav-section-label{font-size:10px;color:var(--dim);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:0 18px 8px;}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all 0.2s;}
+    .nav-link:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+    .nav-link.active{background:rgba(255,184,0,0.08);color:var(--gold);border-left-color:var(--gold);}
+    .nav-link .icon{font-size:17px;width:24px;text-align:center;}
+    .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center;}
+    .sidebar-footer{padding:16px 18px;border-top:1px solid var(--border);}
+    .logout-link{font-size:13px;color:var(--red);cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px;border-radius:8px;transition:background 0.2s;}
+    .logout-link:hover{background:rgba(255,71,87,0.08);}
+
+    .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{height:58px;background:rgba(8,8,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50;}
+    .topbar-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
+    .admin-info{display:flex;align-items:center;gap:10px;font-size:13px;}
+    .admin-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+    .content{padding:24px;flex:1;}
+
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;}
+    .stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;position:relative;overflow:hidden;}
+    .stat-box::before{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;opacity:0.12;}
+    .stat-box.gold::before{background:var(--gold);}.stat-box.green::before{background:var(--green);}.stat-box.blue::before{background:var(--blue);}.stat-box.red::before{background:var(--red);}
+    .stat-label{font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:0.8px;}
+    .stat-val{font-size:26px;font-weight:800;font-family:'Syne',sans-serif;margin-top:6px;}
+    .stat-box.gold .stat-val{color:var(--gold);}.stat-box.green .stat-val{color:var(--green);}.stat-box.blue .stat-val{color:var(--blue);}.stat-box.red .stat-val{color:var(--red);}
+
+    .panel{display:none;}.panel.active{display:block;}
+    .panel-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px;}
+    .panel-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{background:rgba(255,255,255,0.03);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);}
+    tbody td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover{background:rgba(255,255,255,0.02);}
+
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),#cc9200);color:#000;}
+    .btn-success{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3);}
+    .btn-success:hover{background:rgba(0,230,118,0.25);}
+    .btn-danger{background:rgba(255,71,87,0.15);color:var(--red);border:1px solid rgba(255,71,87,0.3);}
+    .btn-danger:hover{background:rgba(255,71,87,0.25);}
+    .btn-blue{background:rgba(0,180,216,0.15);color:var(--blue);border:1px solid rgba(0,180,216,0.3);}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+    .btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+    .badge-green{background:rgba(0,230,118,0.12);color:var(--green);}
+    .badge-gold{background:rgba(255,184,0,0.12);color:var(--gold);}
+    .badge-red{background:rgba(255,71,87,0.12);color:var(--red);}
+    .badge-blue{background:rgba(0,180,216,0.12);color:var(--blue);}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .form-group{margin-bottom:14px;}
+    .form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.5px;}
+    .form-control{width:100%;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color 0.2s;font-family:'Outfit',sans-serif;}
+    .form-control:focus{border-color:var(--gold);}
+    select.form-control option{background:var(--card);}
+
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity 0.3s;}
+    .modal-bg.open{opacity:1;pointer-events:all;}
+    .modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:28px 24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
+    .modal-title{font-size:18px;font-weight:700;margin-bottom:20px;font-family:'Syne',sans-serif;}
+    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+    #toastArea{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+    .toast{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;min-width:260px;animation:slideIn 0.3s ease;display:flex;gap:10px;align-items:center;}
+    .toast.success{border-color:var(--green);}.toast.error{border-color:var(--red);}
+    @keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+    .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+    .filter-bar input,.filter-bar select{padding:9px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;}
+    .filter-bar input:focus{border-color:var(--gold);}
+
+    .empty{text-align:center;padding:48px;color:var(--dim);}
+    .empty-icon{font-size:48px;margin-bottom:10px;}
+    .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,184,0,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);transition:transform 0.3s;}
+      .sidebar.open{transform:translateX(0);}
+      .main{margin-left:0;}
+      .form-row{grid-template-columns:1fr;}
+      .stats-row{grid-template-columns:1fr 1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar" id="adminSidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">💰</div>
+    <div><div class="brand-name">Saturday</div><div class="brand-sub">Admin Panel</div></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-link active" onclick="switchPanel('dashboard',this)"><span class="icon">📊</span>Dashboard</div>
+    <div class="nav-section-label" style="margin-top:12px;">Management</div>
+    <div class="nav-link" onclick="switchPanel('users',this)"><span class="icon">👥</span>Users</div>
+    <div class="nav-link" onclick="switchPanel('activations',this)"><span class="icon">✅</span>Activations <span class="nav-badge" id="activBadge">0</span></div>
+    <div class="nav-link" onclick="switchPanel('tasks',this)"><span class="icon">📝</span>Tasks</div>
+    <div class="nav-link" onclick="switchPanel('withdrawals',this)"><span class="icon">💸</span>Withdrawals <span class="nav-badge" id="wdBadge">0</span></div>
+    <div class="nav-link" onclick="switchPanel('vip',this)"><span class="icon">👑</span>VIP Requests <span class="nav-badge" id="vipBadge">0</span></div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="logout-link" onclick="adminLogout()">🚪 Logout</div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button onclick="toggleSidebar()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;">☰</button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    </div>
+    <div class="admin-info">
+      <div class="admin-dot"></div>
+      <span id="adminName">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="panel-title">📊 Dashboard</div>
+      <div class="panel-sub">Platform overview</div>
+      <div class="stats-row">
+        <div class="stat-box gold"><div class="stat-label">Total Users</div><div class="stat-val" id="s-users">—</div></div>
+        <div class="stat-box green"><div class="stat-label">Active Users</div><div class="stat-val" id="s-active">—</div></div>
+        <div class="stat-box blue"><div class="stat-label">Active Tasks</div><div class="stat-val" id="s-tasks">—</div></div>
+        <div class="stat-box red"><div class="stat-label">Pending Activations</div><div class="stat-val" id="s-activ">—</div></div>
+        <div class="stat-box gold"><div class="stat-label">Pending Withdrawals</div><div class="stat-val" id="s-wd">—</div></div>
+        <div class="stat-box green"><div class="stat-label">Total Withdrawn</div><div class="stat-val" id="s-twith">—</div></div>
+        <div class="stat-box blue"><div class="stat-label">Platform Balance</div><div class="stat-val" id="s-bal">—</div></div>
+        <div class="stat-box red"><div class="stat-label">Pending VIP</div><div class="stat-val" id="s-vip">—</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:14px;">⚡ Quick Actions</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-success" style="justify-content:flex-start;" onclick="switchPanel('activations',document.querySelectorAll('.nav-link')[2])">✅ Review Activations</button>
+            <button class="btn btn-primary" style="justify-content:flex-start;" onclick="switchPanel('tasks',document.querySelectorAll('.nav-link')[3]);setTimeout(openTaskModal,300)">➕ Add New Task</button>
+            <button class="btn btn-blue" style="justify-content:flex-start;" onclick="switchPanel('withdrawals',document.querySelectorAll('.nav-link')[4])">💸 Process Withdrawals</button>
+            <button class="btn btn-outline" style="justify-content:flex-start;" onclick="switchPanel('vip',document.querySelectorAll('.nav-link')[5])">👑 VIP Requests</button>
+          </div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px;">ℹ️ Platform Info</div>
+          <div style="font-size:13px;color:var(--muted);line-height:2.2;">
+            <div>📱 Activation: <strong style="color:var(--text);">01718158600</strong></div>
+            <div>💰 Fee: <strong style="color:var(--gold);">৳100</strong></div>
+            <div>🎁 Referral: <strong style="color:var(--green);">৳50</strong></div>
+            <div>💸 Min Withdrawal: <strong style="color:var(--text);">৳300</strong></div>
+            <div>💸 Max Withdrawal: <strong style="color:var(--text);">৳1,500</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="panel" id="panel-users">
+      <div class="panel-title">👥 Users</div>
+      <div class="panel-sub">Manage all registered users</div>
+      <div class="filter-bar">
+        <input type="text" placeholder="Search name, phone, username..." id="userSearch" oninput="loadUsers()" style="min-width:220px;">
+        <select id="userStatusFilter" onchange="loadUsers()" class="form-control" style="width:auto;">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>User</th><th>Phone</th><th>Balance</th><th>VIP</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersTableBody"><tr><td colspan="8" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACTIVATIONS -->
+    <div class="panel" id="panel-activations">
+      <div class="panel-title">✅ Activations</div>
+      <div class="panel-sub">Review account activation requests</div>
+      <div class="filter-bar">
+        <select id="activStatusFilter" onchange="loadActivations()" class="form-control" style="width:auto;">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Phone</th><th>Method</th><th>Sender Number</th><th>Txn ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="activTableBody"><tr><td colspan="8" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="panel" id="panel-tasks">
+      <div class="panel-title">📝 Tasks</div>
+      <div class="panel-sub">Manage daily tasks for users</div>
+      <div class="filter-bar">
+        <button class="btn btn-primary" onclick="openTaskModal()">➕ Add New Task</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Type</th><th>URL</th><th>Reward</th><th>Watch</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="tasksTableBody"><tr><td colspan="7" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WITHDRAWALS -->
+    <div class="panel" id="panel-withdrawals">
+      <div class="panel-title">💸 Withdrawals</div>
+      <div class="panel-sub">Process withdrawal requests</div>
+      <div class="filter-bar">
+        <select id="wdStatusFilter" onchange="loadWithdrawals()" class="form-control" style="width:auto;">
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Phone</th><th>Method</th><th>To Number</th><th>Amount</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="wdTableBody"><tr><td colspan="8" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIP -->
+    <div class="panel" id="panel-vip">
+      <div class="panel-title">👑 VIP Requests</div>
+      <div class="panel-sub">Approve VIP purchase requests</div>
+      <div class="filter-bar">
+        <select id="vipStatusFilter" onchange="loadVipRequests()" class="form-control" style="width:auto;">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Phone</th><th>VIP</th><th>Amount</th><th>Method</th><th>Txn ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="vipTableBody"><tr><td colspan="9" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-bg" id="taskModal">
+  <div class="modal-box">
+    <div class="modal-title" id="taskModalTitle">➕ Add New Task</div>
+    <input type="hidden" id="taskEditId">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" class="form-control" id="taskTitle" placeholder="Task title"></div>
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-control" id="taskType">
+          <option value="website">🌐 Website</option>
+          <option value="youtube">▶️ YouTube</option>
+          <option value="tiktok">🎵 TikTok</option>
+          <option value="telegram">✈️ Telegram</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">URL *</label><input type="url" class="form-control" id="taskUrl" placeholder="https://..."></div>
+    <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-control" id="taskDesc" placeholder="Optional"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Reward (৳) *</label><input type="number" class="form-control" id="taskReward" placeholder="e.g. 10" min="1"></div>
+      <div class="form-group"><label class="form-label">Watch Seconds</label><input type="number" class="form-control" id="taskWatch" value="60" min="10"></div>
+    </div>
+    <div class="form-group" id="taskActiveGroup" style="display:none;">
+      <label class="form-label">Status</label>
+      <select class="form-control" id="taskActive"><option value="1">✅ Active</option><option value="0">❌ Inactive</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()" id="taskSaveBtn">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- BALANCE MODAL -->
+<div class="modal-bg" id="balanceModal">
+  <div class="modal-box">
+    <div class="modal-title">💰 Adjust Balance</div>
+    <input type="hidden" id="balUserId">
+    <div class="form-group"><label class="form-label">User</label><input type="text" class="form-control" id="balUserName" readonly></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-control" id="balType"><option value="add">➕ Add</option><option value="deduct">➖ Deduct</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Amount (৳)</label><input type="number" class="form-control" id="balAmount" placeholder="Amount" min="1"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeBalanceModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBalance()">Update Balance</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastArea"></div>
+
+<script>
+// ── Auth check ────────────────────────────────────────────────
+const token = localStorage.getItem('sat_token');
+const user  = JSON.parse(localStorage.getItem('sat_user') || '{}');
+if (!token || user.role !== 'admin') {
+  window.location.href = '../index.html';
+}
+document.getElementById('adminName').textContent = user.name || 'Admin';
+
+// ── Helpers ───────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const icons = { success:'✅', error:'❌', info:'💡' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]||'💡'}</span><span>${msg}</span>`;
+  document.getElementById('toastArea').appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(()=>el.remove(),300); }, 4000);
+}
+
+async function api(method, path, body) {
+  try {
+    const res = await fetch('/api' + path, {
+      method,
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      ...(body ? { body: JSON.stringify(body) } : {})
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { throw new Error('Server error'); }
+    if (!res.ok) throw new Error(data.message || 'Request failed');
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+function fDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-BD', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function fAmt(v) { return '৳' + parseFloat(v||0).toFixed(2); }
+function toggleSidebar() { document.getElementById('adminSidebar').classList.toggle('open'); }
+
+// ── Panel switch ──────────────────────────────────────────────
+function switchPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = (el ? el.textContent.trim() : id);
+  const loaders = { dashboard:loadDashboard, users:loadUsers, activations:loadActivations, tasks:loadTasks, withdrawals:loadWithdrawals, vip:loadVipRequests };
+  if (loaders[id]) loaders[id]();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const d = await api('GET', '/admin/stats');
+    document.getElementById('s-users').textContent  = d.totalUsers || 0;
+    document.getElementById('s-active').textContent = d.activeUsers || 0;
+    document.getElementById('s-tasks').textContent  = d.totalTasks || 0;
+    document.getElementById('s-activ').textContent  = d.pendingActivations || 0;
+    document.getElementById('s-wd').textContent     = d.pendingWithdrawals || 0;
+    document.getElementById('s-twith').textContent  = fAmt(d.totalWithdrawn);
+    document.getElementById('s-bal').textContent    = fAmt(d.totalBalance);
+    document.getElementById('s-vip').textContent    = d.pendingVip || 0;
+
+    const aB = document.getElementById('activBadge');
+    const wB = document.getElementById('wdBadge');
+    const vB = document.getElementById('vipBadge');
+    aB.textContent = d.pendingActivations || 0;
+    wB.textContent = d.pendingWithdrawals || 0;
+    vB.textContent = d.pendingVip || 0;
+    aB.style.display = d.pendingActivations ? '' : 'none';
+    wB.style.display = d.pendingWithdrawals ? '' : 'none';
+    vB.style.display = d.pendingVip ? '' : 'none';
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Users ─────────────────────────────────────────────────────
+async function loadUsers() {
+  const search = document.getElementById('userSearch').value;
+  const status = document.getElementById('userStatusFilter').value;
+  const tbody  = document.getElementById('usersTableBody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api('GET', `/admin/users?search=${encodeURIComponent(search)}&status=${status}`);
+    let users = d.users || [];
+    if (status === 'active')   users = users.filter(u => u.isActive);
+    if (status === 'inactive') users = users.filter(u => !u.isActive);
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">👥</div>No users found</div></td></tr>'; return; }
+    tbody.innerHTML = users.map((u, i) => `
+      <tr>
+        <td style="color:var(--dim);">${i+1}</td>
+        <td><div style="font-weight:600;">${u.name}</div><div style="font-size:11px;color:var(--dim);">@${u.username}</div></td>
+        <td>${u.phone}</td>
+        <td style="color:var(--gold);font-weight:700;">${fAmt(u.balance)}</td>
+        <td>${u.vipLevel ? `<span class="badge badge-gold">VIP${u.vipLevel}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
+        <td><span class="badge badge-${u.isActive?'green':'red'}">${u.isActive?'Active':'Inactive'}</span></td>
+        <td style="color:var(--dim);font-size:12px;">${new Date(u.createdAt).toLocaleDateString()}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn ${u.isActive?'btn-danger':'btn-success'}" onclick="toggleUser('${u._id}',${u.isActive})">${u.isActive?'Deactivate':'Activate'}</button>
+            <button class="btn btn-blue" onclick="openBalanceModal('${u._id}','${u.name}')">💰</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function toggleUser(id, current) {
+  try {
+    const d = await api('PUT', `/admin/users/${id}/toggle-active`);
+    toast(d.message, 'success');
+    loadUsers();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Activations ───────────────────────────────────────────────
+async function loadActivations() {
+  const status = document.getElementById('activStatusFilter').value;
+  const tbody  = document.getElementById('activTableBody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api('GET', `/admin/activations?status=${status}`);
+    const items = d.activations || [];
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">📭</div>No activations found</div></td></tr>'; return; }
+    tbody.innerHTML = items.map(a => `
+      <tr>
+        <td><div style="font-weight:600;">${a.name||'—'}</div><div style="font-size:11px;color:var(--dim);">@${a.username||'—'}</div></td>
+        <td>${a.phone||'—'}</td>
+        <td><span class="badge badge-blue">${(a.paymentMethod||'').toUpperCase()}</span></td>
+        <td>${a.senderNumber||'—'}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--gold);">${a.transactionId||'—'}</td>
+        <td style="font-size:12px;color:var(--dim);">${fDate(a.createdAt)}</td>
+        <td><span class="badge badge-${a.status==='approved'?'green':a.status==='pending'?'gold':'red'}">${a.status}</span></td>
+        <td>
+          ${a.status==='pending' ? `
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-success" onclick="approveActivation('${a._id}')">✅ Approve</button>
+            <button class="btn btn-danger"  onclick="rejectActivation('${a._id}')">❌ Reject</button>
+          </div>` : '—'}
+        </td>
+      </tr>`).join('');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function approveActivation(id) {
+  if (!confirm('এই account টি activate করবেন?')) return;
+  try {
+    const d = await api('PUT', `/admin/activations/${id}/approve`);
+    toast(d.message, 'success');
+    loadActivations(); loadDashboard();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function rejectActivation(id) {
+  const reason = prompt('Rejection reason:') || 'Payment not verified';
+  try {
+    const d = await api('PUT', `/admin/activations/${id}/reject`, { reason });
+    toast(d.message, 'info');
+    loadActivations(); loadDashboard();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Tasks ─────────────────────────────────────────────────────
+async function loadTasks() {
+  const tbody = document.getElementById('tasksTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api('GET', '/admin/tasks');
+    const tasks = d.tasks || [];
+    if (!tasks.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">📝</div>No tasks yet. Add one!</div></td></tr>'; return; }
+    tbody.innerHTML = tasks.map(t => `
+      <tr>
+        <td><div style="font-weight:600;">${t.title}</div>${t.description?`<div style="font-size:11px;color:var(--dim);">${t.description}</div>`:''}</td>
+        <td><span class="badge badge-blue">${t.type||'website'}</span></td>
+        <td><a href="${t.url}" target="_blank" style="color:var(--blue);font-size:12px;">${(t.url||'').slice(0,35)}...</a></td>
+        <td style="color:var(--gold);font-weight:700;">${fAmt(t.reward)}</td>
+        <td style="color:var(--dim);">${t.watchSeconds||60}s</td>
+        <td><span class="badge badge-${t.isActive?'green':'red'}">${t.isActive?'Active':'Inactive'}</span></td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline" onclick='editTask(${JSON.stringify(t)})'>✏️ Edit</button>
+            <button class="btn btn-danger"  onclick="deleteTask('${t._id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+function openTaskModal() {
+  document.getElementById('taskModalTitle').textContent = '➕ Add New Task';
+  document.getElementById('taskEditId').value = '';
+  document.getElementById('taskTitle').value  = '';
+  document.getElementById('taskUrl').value    = '';
+  document.getElementById('taskDesc').value   = '';
+  document.getElementById('taskReward').value = '';
+  document.getElementById('taskWatch').value  = '60';
+  document.getElementById('taskType').value   = 'website';
+  document.getElementById('taskActiveGroup').style.display = 'none';
+  document.getElementById('taskSaveBtn').textContent = 'Save Task';
+  document.getElementById('taskModal').classList.add('open');
+}
+
+function editTask(t) {
+  document.getElementById('taskModalTitle').textContent = '✏️ Edit Task';
+  document.getElementById('taskEditId').value = t._id;
+  document.getElementById('taskTitle').value  = t.title || '';
+  document.getElementById('taskUrl').value    = t.url || '';
+  document.getElementById('taskDesc').value   = t.description || '';
+  document.getElementById('taskReward').value = t.reward || '';
+  document.getElementById('taskWatch').value  = t.watchSeconds || 60;
+  document.getElementById('taskType').value   = t.type || 'website';
+  document.getElementById('taskActive').value = t.isActive ? '1' : '0';
+  document.getElementById('taskActiveGroup').style.display = 'block';
+  document.getElementById('taskSaveBtn').textContent = 'Update Task';
+  document.getElementById('taskModal').classList.add('open');
+}
+
+function closeTaskModal() { document.getElementById('taskModal').classList.remove('open'); }
+
+async function saveTask() {
+  const id   = document.getElementById('taskEditId').value;
+  const body = {
+    title:        document.getElementById('taskTitle').value.trim(),
+    url:          document.getElementById('taskUrl').value.trim(),
+    description:  document.getElementById('taskDesc').value.trim(),
+    reward:       document.getElementById('taskReward').value,
+    watchSeconds: document.getElementById('taskWatch').value,
+    type:         document.getElementById('taskType').value,
+    is_active:    document.getElementById('taskActive').value === '1',
+  };
+  if (!body.title || !body.url || !body.reward) { toast('Title, URL ও Reward দিন', 'error'); return; }
+  const btn = document.getElementById('taskSaveBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    if (id) { await api('PUT', `/admin/tasks/${id}`, body); toast('Task updated!', 'success'); }
+    else     { await api('POST', '/admin/tasks', body);     toast('Task created!', 'success'); }
+    closeTaskModal(); loadTasks();
+  } catch(err) { toast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = id ? 'Update Task' : 'Save Task'; }
+}
+
+async function deleteTask(id) {
+  if (!confirm('এই task টি delete করবেন?')) return;
+  try { await api('DELETE', `/admin/tasks/${id}`); toast('Task deleted', 'info'); loadTasks(); }
+  catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Withdrawals ───────────────────────────────────────────────
+async function loadWithdrawals() {
+  const status = document.getElementById('wdStatusFilter').value;
+  const tbody  = document.getElementById('wdTableBody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api('GET', `/admin/withdrawals?status=${status}`);
+    const items = d.withdrawals || [];
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">💸</div>No withdrawals</div></td></tr>'; return; }
+    tbody.innerHTML = items.map(w => `
+      <tr>
+        <td style="font-weight:600;">${w.name||'—'}</td>
+        <td>${w.phone||'—'}</td>
+        <td><span class="badge badge-blue">${(w.method||'').toUpperCase()}</span></td>
+        <td style="color:var(--gold);">${w.number||'—'}</td>
+        <td style="font-weight:700;color:var(--gold);">${fAmt(w.amount)}</td>
+        <td style="font-size:12px;color:var(--dim);">${fDate(w.createdAt)}</td>
+        <td><span class="badge badge-${w.status==='completed'?'green':w.status==='pending'?'gold':'red'}">${w.status}</span></td>
+        <td>
+          ${w.status==='pending'?`
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-success" onclick="approveWd('${w._id}')">✅ Paid</button>
+            <button class="btn btn-danger"  onclick="rejectWd('${w._id}')">❌ Reject</button>
+          </div>` : '—'}
+        </td>
+      </tr>`).join('');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function approveWd(id) {
+  if (!confirm('এই withdrawal টি paid হিসেবে mark করবেন?')) return;
+  try { const d = await api('PUT', `/admin/withdrawals/${id}/approve`); toast(d.message, 'success'); loadWithdrawals(); loadDashboard(); }
+  catch(err) { toast(err.message, 'error'); }
+}
+
+async function rejectWd(id) {
+  const reason = prompt('Rejection reason:') || 'Rejected';
+  try { const d = await api('PUT', `/admin/withdrawals/${id}/reject`, { reason }); toast(d.message, 'info'); loadWithdrawals(); loadDashboard(); }
+  catch(err) { toast(err.message, 'error'); }
+}
+
+// ── VIP ───────────────────────────────────────────────────────
+async function loadVipRequests() {
+  const status = document.getElementById('vipStatusFilter').value;
+  const tbody  = document.getElementById('vipTableBody');
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api('GET', `/admin/vip-purchases?status=${status}`);
+    const items = d.purchases || [];
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><div class="empty-icon">👑</div>No VIP requests</div></td></tr>'; return; }
+    tbody.innerHTML = items.map(p => `
+      <tr>
+        <td style="font-weight:600;">${p.name||'—'}</td>
+        <td>${p.phone||'—'}</td>
+        <td><span class="badge badge-gold">VIP ${p.level}</span></td>
+        <td style="color:var(--gold);font-weight:700;">${fAmt(p.amount)}</td>
+        <td><span class="badge badge-blue">${(p.paymentMethod||'').toUpperCase()}</span></td>
+        <td style="font-family:monospace;font-size:12px;">${p.transactionId||'—'}</td>
+        <td style="font-size:12px;color:var(--dim);">${fDate(p.createdAt)}</td>
+        <td><span class="badge badge-${p.status==='approved'?'green':p.status==='pending'?'gold':'red'}">${p.status}</span></td>
+        <td>
+          ${p.status==='pending'?`
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-success" onclick="approveVip('${p._id}')">✅</button>
+            <button class="btn btn-danger"  onclick="rejectVip('${p._id}')">❌</button>
+          </div>` : '—'}
+        </td>
+      </tr>`).join('');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function approveVip(id) {
+  if (!confirm('VIP approve করবেন?')) return;
+  try { const d = await api('PUT', `/admin/vip-purchases/${id}/approve`); toast(d.message, 'success'); loadVipRequests(); loadDashboard(); }
+  catch(err) { toast(err.message, 'error'); }
+}
+
+async function rejectVip(id) {
+  try { await api('PUT', `/admin/vip-purchases/${id}/reject`); toast('VIP rejected', 'info'); loadVipRequests(); }
+  catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Balance modal ─────────────────────────────────────────────
+function openBalanceModal(id, name) {
+  document.getElementById('balUserId').value   = id;
+  document.getElementById('balUserName').value = name;
+  document.getElementById('balAmount').value   = '';
+  document.getElementById('balanceModal').classList.add('open');
+}
+function closeBalanceModal() { document.getElementById('balanceModal').classList.remove('open'); }
+
+async function saveBalance() {
+  const id     = document.getElementById('balUserId').value;
+  const amount = document.getElementById('balAmount').value;
+  const type   = document.getElementById('balType').value;
+  if (!amount) { toast('Amount দিন', 'error'); return; }
+  try {
+    const d = await api('PUT', `/admin/users/${id}/balance`, { amount, type });
+    toast(d.message, 'success');
+    closeBalanceModal(); loadUsers();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Modal close on background click ──────────────────────────
+document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+function adminLogout() {
+  if (confirm('Logout করবেন?')) { localStorage.clear(); window.location.href = '../index.html'; }
+}
+
+// ── Init ──────────────────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>

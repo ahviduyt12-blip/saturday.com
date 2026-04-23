@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saturday — Halal Earn Money Platform</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .tab-switcher {
+      display: flex;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #000;
+    }
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+    }
+    .terms-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 14px;
+    }
+    .terms-text span { color: var(--gold); cursor: pointer; }
+    .floating-orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    .orb1 { width: 300px; height: 300px; top: -100px; right: -100px; background: radial-gradient(circle, rgba(255,184,0,0.08), transparent); }
+    .orb2 { width: 250px; height: 250px; bottom: -80px; left: -80px; background: radial-gradient(circle, rgba(0,180,216,0.06), transparent); animation-delay: 2s; }
+    .social-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,184,0,0.06);
+      border: 1px solid rgba(255,184,0,0.15);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .social-badge span { color: var(--gold); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="floating-orb orb1"></div>
+  <div class="floating-orb orb2"></div>
+  <div class="toast-container"></div>
+
+  <div class="auth-page">
+    <div class="auth-card fade-in">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <div class="logo-icon-big">💰</div>
+        <div class="brand-name">Saturday</div>
+        <div class="brand-tagline">Halal Earn Money Platform</div>
+      </div>
+
+      <!-- Feature badges -->
+      <div class="social-badge">✅ <span>Trusted</span> & Verified Halal Earning Platform</div>
+
+      <!-- Server offline warning -->
+      <div id="serverWarn" style="display:none;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#ff4757;line-height:1.8;">
+        ⚠️ <strong>Server বন্ধ আছে!</strong> Login করতে backend চালু করুন:<br>
+        <span style="font-family:monospace;background:rgba(0,0,0,0.25);padding:2px 8px;border-radius:4px;display:inline-block;margin-top:4px;">cd backend &nbsp;→&nbsp; npm install &nbsp;→&nbsp; node server.js</span>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="tab-switcher">
+        <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="form-section active" id="loginSection">
+        <h2 class="auth-title">Welcome back 👋</h2>
+        <p class="auth-subtitle">Sign in to your Saturday account</p>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <div class="input-group">
+              <span class="input-icon">📱</span>
+              <input type="tel" class="form-control" id="loginPhone" placeholder="01XXXXXXXXX" maxlength="11" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-group" style="position:relative;">
+              <span class="input-icon">🔒</span>
+              <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+              <button type="button" class="eye-btn" onclick="togglePass('loginPassword',this)">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+            Sign In
+          </button>
+        </form>
+
+        <div class="terms-text">
+          Don't have an account? <span onclick="switchTab('register')">Create one →</span>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="form-section" id="registerSection">
+        <h2 class="auth-title">Join Saturday 🌟</h2>
+        <p class="auth-subtitle">Create your free account today</p>
+
+        <form id="registerForm" novalidate>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <div class="input-group">
+              <span class="input-icon">👤</span>
+              <input type="text" class="form-control" id="regName" placeholder="Your full name" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <div class="input-group">
+              <span class="input-icon">🆔</span>
+              <input type="text" class="form-control" id="regUsername" placeholder="Choose a username" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <div class="input-group">
+              <span class="input-icon">📱</span>
+              <input type="tel" class="form-control" id="regPhone" placeholder="01XXXXXXXXX" maxlength="11" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-icon">📧</span>
+              <input type="email" class="form-control" id="regEmail" placeholder="your@email.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Referral Code (Optional)</label>
+            <div class="input-group">
+              <span class="input-icon">🔗</span>
+              <input type="text" class="form-control" id="regRef" placeholder="Referral code if any">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-group" style="position:relative;">
+              <span class="input-icon">🔒</span>
+              <input type="password" class="form-control" id="regPassword" placeholder="Min 6 characters" required>
+              <button type="button" class="eye-btn" onclick="togglePass('regPassword',this)">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-group" style="position:relative;">
+              <span class="input-icon">🔐</span>
+              <input type="password" class="form-control" id="regConfirm" placeholder="Re-enter password" required>
+              <button type="button" class="eye-btn" onclick="togglePass('regConfirm',this)">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+            Create Account
+          </button>
+        </form>
+        <div class="terms-text">
+          By registering, you agree to our <span>Terms of Service</span>.<br>
+          Already have an account? <span onclick="switchTab('login')">Sign in →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (localStorage.getItem('sat_token')) {
+      window.location.href = 'home.html';
+    }
+
+    // ── Check if backend is reachable ──────────────────────
+    fetch('/api/health')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .catch(() => {
+        document.getElementById('serverWarn').style.display = 'block';
+      });
+
+    // Check for referral in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      document.getElementById('regRef').value = refCode;
+      switchTab('register');
+    }
+
+    function switchTab(tab) {
+      const loginSection = document.getElementById('loginSection');
+      const registerSection = document.getElementById('registerSection');
+      const tabs = document.querySelectorAll('.tab-btn');
+      if (tab === 'login') {
+        loginSection.classList.add('active');
+        registerSection.classList.remove('active');
+        tabs[0].classList.add('active');
+        tabs[1].classList.remove('active');
+      } else {
+        registerSection.classList.add('active');
+        loginSection.classList.remove('active');
+        tabs[1].classList.add('active');
+        tabs[0].classList.remove('active');
+      }
+    }
+
+    function togglePass(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+      else { input.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function setLoading(btn, loading) {
+      btn.disabled = loading;
+      btn.innerHTML = loading ? '<span class="spinner"></span> Please wait...' : btn.dataset.text;
+    }
+
+    // LOGIN
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btn.dataset.text = 'Sign In';
+      const phone    = document.getElementById('loginPhone').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!phone)    return Toast.error('Please enter your phone number');
+      if (!password) return Toast.error('Please enter your password');
+      if (!/^01[3-9]\d{8}$/.test(phone)) return Toast.error('Enter a valid 11-digit phone number');
+
+      setLoading(btn, true);
+      try {
+        const data = await API.post('/auth/login', { phone, password });
+        Auth.setSession(data.token, data.user);
+        Toast.success('Welcome back, ' + data.user.name + '!');
+        setTimeout(() => window.location.href = 'home.html', 900);
+      } catch (err) {
+        // Show friendly Bengali message based on error type
+        const msg = err.message || '';
+        if (msg.includes('fetch') || msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+          Toast.error('❌ Server বন্ধ আছে। Node.js server চালু করুন: cd backend → node server.js');
+        } else if (msg.includes('Invalid') || msg.includes('password')) {
+          Toast.error('ফোন নম্বর বা পাসওয়ার্ড ভুল।');
+        } else if (msg.includes('JSON') || msg.includes('Unexpected')) {
+          Toast.error('❌ Server বন্ধ আছে। backend ফোল্ডারে গিয়ে: node server.js চালান');
+        } else {
+          Toast.error(msg || 'Login failed. Please try again.');
+        }
+        setLoading(btn, false);
+      }
+    });
+
+    // REGISTER
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('registerBtn');
+      btn.dataset.text = 'Create Account';
+      const name = document.getElementById('regName').value.trim();
+      const username = document.getElementById('regUsername').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirm').value;
+      const referral = document.getElementById('regRef').value.trim();
+
+      if (!name || !username || !phone || !email || !password || !confirm) return Toast.error('Please fill all required fields');
+      if (password !== confirm) return Toast.error('Passwords do not match');
+      if (password.length < 6) return Toast.error('Password must be at least 6 characters');
+      if (!/^01[3-9]\d{8}$/.test(phone)) return Toast.error('Enter a valid Bangladeshi phone number');
+
+      setLoading(btn, true);
+      try {
+        const data = await API.post('/auth/register', { name, username, phone, email, password, referral });
+        Auth.setSession(data.token, data.user);
+        Toast.success('Account created! Welcome to Saturday 🎉');
+        setTimeout(() => window.location.href = 'home.html', 1200);
+      } catch (err) {
+        Toast.error(err.message || 'Registration failed');
+        setLoading(btn, false);
+      }
+    });
+  </script>
+</body>
+</html>
